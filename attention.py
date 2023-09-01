@@ -1,5 +1,6 @@
 from keras import backend as K
-from keras.engine.topology import Layer, InputSpec
+from keras.engine.base_layer import Layer
+from keras.engine.input_spec import InputSpec
 from keras.layers import Input, GlobalAveragePooling1D, GlobalMaxPooling1D, Embedding, Lambda, Dense
 from keras.models import Model
 import numpy as np
