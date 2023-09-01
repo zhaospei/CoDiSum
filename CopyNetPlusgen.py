@@ -61,7 +61,7 @@ def train():
     model, _, _ = CopyNetPlus(E_L, D_L, A_N, EM_V, DE_V, MED, WED, HS, ATN, TR_DR, genmask, copymask)
     es = EarlyStopping(monitor='val_loss', patience=PC)
     cp = ModelCheckpoint(filepath=MODEL_PATH, monitor='val_loss', save_best_only=True)
-    model.fit(generator(t1, t2, t3, t4, TR_S, TR_E, DE_V, TR_BS, True), (TR_E - TR_S) / TR_BS,
+    model.fit_generator(generator(t1, t2, t3, t4, TR_S, TR_E, DE_V, TR_BS, True), (TR_E - TR_S) / TR_BS,
                         EP, callbacks=[es, cp],
                         validation_data=generator(t1, t2, t3, t4, VA_S, VA_E, DE_V, TR_BS, False),
                         validation_steps=(VA_E - VA_S) / TR_BS)
