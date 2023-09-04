@@ -28,11 +28,11 @@ def generator(t1, t2, t3, t4, start, end, vocab_size, batch_size, shuffle):
 
 MODEL_PATH = 'models/CopyNetPlusWED150HS16.h5'          # TODO
 TR_S = 0                        # train_start_index
-TR_E = 75000                    # train_end_index
-VA_S = 75000                    # valid_start_index
-VA_E = 83000                    # valid_end_index
-TE_S = 83000                    # test_start_index
-TE_E = 90661                    # test_end_index
+TR_E = 2500                    # train_end_index
+VA_S = 2500                    # valid_start_index
+VA_E = 4300                    # valid_end_index
+TE_S = 4300                    # test_start_index
+TE_E = 5066                    # test_end_index
 TR_BS = 100                     # train batch size
 EP = 50                         # trian epoch
 TE_BS = 1                       # test batch size
@@ -60,7 +60,7 @@ def train():
     del dataset
     model, _, _ = CopyNetPlus(E_L, D_L, A_N, EM_V, DE_V, MED, WED, HS, ATN, TR_DR, genmask, copymask)
     es = EarlyStopping(monitor='val_loss', patience=PC)
-    cp = ModelCheckpoint(filepath=MODEL_PATH, monitor='val_loss', save_best_only=True)
+    cp = ModelCheckpoint(filepath=MODEL_PATH, monitor='val_loss', save_best_only=True, save_weights_only=True)
     model.fit_generator(generator(t1, t2, t3, t4, TR_S, TR_E, DE_V, TR_BS, True), (TR_E - TR_S) / TR_BS,
                         EP, callbacks=[es, cp],
                         validation_data=generator(t1, t2, t3, t4, VA_S, VA_E, DE_V, TR_BS, False),
