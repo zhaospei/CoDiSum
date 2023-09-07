@@ -327,7 +327,7 @@ class Data4CopynetV3:
             f.write('{}\t\t\t{}\n'.format(i[0], i[1]))
         # json.dump(self.word2index, open('data4mul_block/word2index.json', 'w'))
 
-    def gen_tensor2(self, start, end, vocab_size, diff_len=200, attr_num=5, msg_len=20):
+    def gen_tensor2(self, start, end, vocab_size, diff_len=810, attr_num=5, msg_len=20):
         lemmatization = json.load(open('lemmatization.json'))
         length = end - start
         msg = self.msg[start: end]
