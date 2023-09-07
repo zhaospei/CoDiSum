@@ -50,7 +50,7 @@ TR_DR = 0.1                     # drop rate for train
 TE_DR = 0.                      # drop rate for test
 PC = 2                          # patience
 BM_S = 2                        # beam size
-VER = 12                        # data version
+VER = 33                        # data version
 
 
 def train():
