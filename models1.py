@@ -3,6 +3,7 @@ from keras.layers import Input, Embedding, Bidirectional, GRU, Dense, TimeDistri
 from keras.layers import RepeatVector, Reshape, Dropout
 import keras.backend as K
 from keras.utils import np_utils
+from keras.utils import plot_model
 import numpy as np
 from attention import Masked, MaskedTimeAttentionWithCoverage, MaskedGlobalMaxPooling1D, MaskedGlobalAveragePooling1D
 from defined_layers import GetPiece, AttentionCopy, CombineGenCopy, MaskedSoftmax, ComputeAlpha, WeightedSum
@@ -35,25 +36,27 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
     a_encoder_in = Input(shape=(len_en, attr_num), dtype=K.floatx())
     a_reshape_in = Lambda(lambda x: K.reshape(x, (-1, attr_num)))(a_encoder_in)
     m_embed_en = mark_embed_layer(m_encoder_in)
-    w_embed_en = Embedding(embed_vocab_size, w_embed_dim, mask_zero=True)(w_encoder_in)
-    a_embed_en = Embedding(embed_vocab_size, w_embed_dim, mask_zero=True)(a_reshape_in)
+    w_embed_en = word_embed_layer(w_encoder_in)
+    a_embed_en = word_embed_layer(a_reshape_in)
     embed_en = Concatenate()([m_embed_en, w_embed_en])
     rnn_h1, state_f1, state_b1 = bi_rnn_layer1(embed_en)
-    rnn_h2, state_f2, state_b2 = bi_rnn_layer2(Dropout(drop_rate)(rnn_h1))
-    rnn_h3, state_f3, state_b3 = bi_rnn_layer3(Dropout(drop_rate)(rnn_h2))
+    rnn_h2, state_f2, state_b2 = bi_rnn_layer2(dropout(rnn_h1))
+    rnn_h3, state_f3, state_b3 = bi_rnn_layer3(dropout(rnn_h2))
     a_rnn_h1 = bi_rnn_layer4(a_embed_en)
-    a_rnn_h2 = bi_rnn_layer5(Dropout(drop_rate)(a_rnn_h1))
-    a_rnn_h3 = bi_rnn_layer6(Dropout(drop_rate)(a_rnn_h2))
-    a_rnn_h3 = Lambda(lambda x: K.reshape(x, (-1, len_en, hid_size * 2)))(Dropout(drop_rate)(a_rnn_h3))
+    a_rnn_h2 = bi_rnn_layer5(dropout(a_rnn_h1))
+    a_rnn_h3 = bi_rnn_layer6(dropout(a_rnn_h2))
+    a_rnn_h3 = Lambda(lambda x: K.reshape(x, (-1, len_en, hid_size * 2)))(dropout(a_rnn_h3))
     state1 = Concatenate()([state_f1, state_b1])
     state2 = Concatenate()([state_f2, state_b2])
     state3 = Concatenate()([state_f3, state_b3])
-    rnn_h3 = Dropout(drop_rate)(rnn_h3)
+    rnn_h3 = dropout(rnn_h3)
     masked_rnn_h3, mask = Masked(return_mask=True)(rnn_h3)
     masked_rnn_h3 = Concatenate()([masked_rnn_h3, a_rnn_h3])
     encoder = Model(inputs=[m_encoder_in, w_encoder_in, a_encoder_in],
                     outputs=[masked_rnn_h3, mask, m_embed_en, state1, state2, state3])
     print(encoder.summary())
+
+    plot_model(encoder, "encoder.png", show_shapes=True)
 
     token_in = Input(shape=(1,), dtype=K.floatx())
     state1_p = Input(shape=(hid_size * 2,), dtype=K.floatx())
@@ -62,7 +65,7 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
     hid_state_en = Input(shape=(len_en, hid_size * 4), dtype=K.floatx())
     mask_en = Input(shape=(len_en,), dtype='bool')
     mark_en = Input(shape=(len_en, m_embed_dim))
-    embed_de = Embedding(embed_vocab_size, w_embed_dim, mask_zero=True)(token_in)
+    embed_de = word_embed_layer(token_in)
     rnn_h4_p, state_out1 = rnn_layer1(embed_de, initial_state=state1_p)
     rnn_h5_p, state_out2 = rnn_layer2(rnn_h4_p, initial_state=state2_p)
     rnn_h6_p, state_out3 = rnn_layer3(rnn_h5_p, initial_state=state3_p)
@@ -72,7 +75,7 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
     p_gen_source = Concatenate()([rnn_h6_p, att_cont, embed_de])
     p_gen = p_gen_dense_layer(p_gen_source)
     att_out = Concatenate()([rnn_h6_p, att_cont, att_mark])
-    gen_prob = TimeDistributed(Dense(decode_vocab_size))(att_out)
+    gen_prob = TimeDistributed(gen_dense_layer)(att_out)
     gen_prob = MaskedSoftmax(gen_mask)(gen_prob)
     copy_prob = AttentionCopy(decode_vocab_size)([w_encoder_in, alpha])
     copy_prob = MaskedCopyProb(copy_mask)(copy_prob)
@@ -81,19 +84,21 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
                     [next_token, p_gen, alpha, state_out1, state_out2, state_out3])
     print(decoder.summary())
 
+    plot_model(decoder, "decoder.png", show_shapes=True)
+
     decoder_in = Input(shape=(len_de,), dtype=K.floatx())
-    embed_de = Embedding(embed_vocab_size, w_embed_dim, mask_zero=True)(decoder_in)
-    rnn_h4, _ = GRU(hid_size * 2, return_sequences=True, return_state=True)(embed_de, initial_state=state1)
-    rnn_h5, _ = GRU(hid_size * 2, return_sequences=True, return_state=True)(Dropout(drop_rate)(rnn_h4), initial_state=state2)
-    rnn_h6, _ = GRU(hid_size * 2, return_sequences=True, return_state=True)(Dropout(drop_rate)(rnn_h5), initial_state=state3)
-    rnn_h6 = Dropout(drop_rate)(rnn_h6)
-    alpha =  ComputeAttention(att_num)([masked_rnn_h3, rnn_h6, mask])
+    embed_de = word_embed_layer(decoder_in)
+    rnn_h4, _ = rnn_layer1(embed_de, initial_state=state1)
+    rnn_h5, _ = rnn_layer2(dropout(rnn_h4), initial_state=state2)
+    rnn_h6, _ = rnn_layer3(dropout(rnn_h5), initial_state=state3)
+    rnn_h6 = dropout(rnn_h6)
+    alpha = compute_alpha([masked_rnn_h3, rnn_h6, mask])
     att_cont = Lambda(lambda x: K.batch_dot(x[0], x[1], axes=(2, 1)))([alpha, masked_rnn_h3])
     att_mark = Lambda(lambda x: K.batch_dot(x[0], x[1], axes=(2, 1)))([alpha, m_embed_en])
-    att_cont = Dropout(drop_rate)(att_cont)
-    att_mark = Dropout(drop_rate)(att_mark)
+    att_cont = dropout(att_cont)
+    att_mark = dropout(att_mark)
     p_gen_source = Concatenate()([rnn_h6, att_cont, embed_de])
-    p_gen = Dense(1, activation='sigmoid')(p_gen_source)
+    p_gen = p_gen_dense_layer(p_gen_source)
     att_out = Concatenate()([rnn_h6, att_cont, att_mark])
     gen_prob = TimeDistributed(gen_dense_layer)(att_out)
     gen_prob = MaskedSoftmax(gen_mask)(gen_prob)
@@ -103,6 +108,9 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
     model = Model(inputs=[m_encoder_in, w_encoder_in, a_encoder_in, decoder_in], outputs=output)
     print(model.summary())
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+
+    plot_model(model, "model.png", show_shapes=True)
+
     return model, encoder, decoder
 
 
