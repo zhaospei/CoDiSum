@@ -28,19 +28,19 @@ def generator(t1, t2, t3, t4, start, end, vocab_size, batch_size, shuffle):
 
 MODEL_PATH = 'models/CopyNetPlusWED150HS16.h5'          # TODO
 TR_S = 0                        # train_start_index
-TR_E = 75000                    # train_end_index
-VA_S = 75000                    # valid_start_index
-VA_E = 83000                    # valid_end_index
-TE_S = 83000                    # test_start_index
-TE_E = 90661                    # test_end_index
+TR_E = 10651                    # train_end_index
+VA_S = 10651                    # valid_start_index
+VA_E = 14172                    # valid_end_index
+TE_S = 14172                    # test_start_index
+TE_E = 17601                    # test_end_index
 TR_BS = 100                     # train batch size
-EP = 50                         # trian epoch
+EP = 50                         # train epoch
 TE_BS = 1                       # test batch size
 E_L = 200                       # encoder len
 A_N = 5                         # attribute number
 D_L = 20                        # decoder len
-EM_V = 24634                    # embedding vocabulary num
-DE_V = 10130                    # decoder vocabulary num
+EM_V = 32934                    # embedding vocabulary num
+DE_V = 10078                    # decoder vocabulary num
 SEED = 1                        # random seed
 MED = 50                        # mark embedding dim
 WED = 150                       # TODO: word embedding dim

@@ -56,8 +56,6 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
                     outputs=[masked_rnn_h3, mask, m_embed_en, state1, state2, state3])
     print(encoder.summary())
 
-    plot_model(encoder, "encoder.png", show_shapes=True)
-
     token_in = Input(shape=(1,), dtype=K.floatx())
     state1_p = Input(shape=(hid_size * 2,), dtype=K.floatx())
     state2_p = Input(shape=(hid_size * 2,), dtype=K.floatx())
@@ -84,8 +82,6 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
                     [next_token, p_gen, alpha, state_out1, state_out2, state_out3])
     print(decoder.summary())
 
-    plot_model(decoder, "decoder.png", show_shapes=True)
-
     decoder_in = Input(shape=(len_de,), dtype=K.floatx())
     embed_de = word_embed_layer(decoder_in)
     rnn_h4, _ = rnn_layer1(embed_de, initial_state=state1)
@@ -108,8 +104,6 @@ def CopyNetPlus(len_en, len_de, attr_num, embed_vocab_size, decode_vocab_size, m
     model = Model(inputs=[m_encoder_in, w_encoder_in, a_encoder_in, decoder_in], outputs=output)
     print(model.summary())
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-
-    plot_model(model, "model.png", show_shapes=True)
 
     return model, encoder, decoder
 
