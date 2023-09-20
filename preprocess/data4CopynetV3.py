@@ -34,107 +34,110 @@ logging_config = {
 logging.config.dictConfig(logging_config) 
 logger = logging.getLogger(__name__)
 
-def pygment_mul_line(java_lines, language="java"):
-    string = '\n'.join(java_lines)
-    if string == '':
-        return list(), dict()
+def pygment_mul_line(java_lines, language_ls=["java"]):
 
-    if language == "java":
-        lexer = JavaLexer()
-    elif language == "python":
-        lexer = PythonLexer()
-    elif language == "cpp":
-        lexer = CppLexer()
-    elif language == "c":
-        lexer = CLexer()
-    elif language == "javascript":
-        lexer = JavascriptLexer()
-    elif language == "csharp":
-        lexer = CSharpLexer()
-    else:
-        print("Please modify this file. Reference: https://pygments.org/docs/lexers/")
-
-    x = highlight(string, lexer, RawTokenFormatter())
-    x = str(x, encoding='utf-8')
     tokenList = list()
     variableDict = dict()
     nameNum, attNum, clsNum, fucNum = 0, 0, 0, 0
     otherDict = dict()
     floatNum, numberNum, strNum = 0, 0, 0
-    for y in x.splitlines():
-        ys = y.split('\t')
-        # print(ys)
-        s = eval(ys[1])
-        if s == '\n':
-            tokenList.append('<nl>')
-        elif s == 'NewBlock':
-            tokenList.append('<nb>')
-        elif s.isspace():
-            lines = s.count('\n')
-            for _ in range(lines):
-                tokenList.append('<nl>')
-        elif "Token.Literal.Number.Float" == ys[0]:
-            if s not in otherDict:
-                sT = 'FLOAT{}'.format(floatNum)
-                otherDict[s] = sT
-                floatNum += 1
-            tokenList.append(otherDict[s])
-        elif ys[0].startswith('Token.Literal.Number'):
-            if s not in otherDict:
-                sT = 'NUMBER{}'.format(numberNum)
-                otherDict[s] = sT
-                numberNum += 1
-            tokenList.append(otherDict[s])
-        elif ys[0].startswith('Token.Literal.String'):
-            if s not in otherDict:
-                sT = 'STRING{}'.format(strNum)
-                otherDict[s] = sT
-                strNum += 1
-            tokenList.append(otherDict[s])
-        elif "Token.Name.Namespace" == ys[0]:
-            tokenList.append('NAMESPACE')
-        elif "Token.Comment.Single" == ys[0]:
-            tokenList.append('SINGLE')
-        elif "Token.Comment.Multiline" == ys[0]:
-            lines = s.count('\n')
-            for _ in range(lines):
-                tokenList.append('COMMENT')
-                tokenList.append('<nl>')
-            tokenList.append('COMMENT')
-        elif 'Token.Name.Decorator' == ys[0]:
-            tokenList.append('@')
-            tokenList.append(s[1:].lower())
-        elif 'Token.Name' == ys[0]:
-            if s not in variableDict:
-                sT = 'n{}'.format(nameNum)
-                variableDict[s] = sT
-                nameNum += 1
-            tokenList.append(s)
-        elif 'Token.Name.Attribute' == ys[0]:
-            if s not in variableDict:
-                sT = 'a{}'.format(attNum)
-                variableDict[s] = sT
-                attNum += 1
-            tokenList.append(s)
-        elif 'Token.Name.Class' == ys[0]:
-            if s not in variableDict:
-                sT = 'c{}'.format(clsNum)
-                variableDict[s] = sT
-                clsNum += 1
-            tokenList.append(s)
-        elif 'Token.Name.Function' == ys[0]:
-            if s not in variableDict:
-                sT = 'f{}'.format(fucNum)
-                variableDict[s] = sT
-                fucNum += 1
-            tokenList.append(s)
+
+    for java_line, language in zip(java_lines, language_ls):
+        string = '\n'.join(java_line)
+        if string == '':
+            return list(), dict()
+        if language == "java":
+            lexer = JavaLexer()
+        elif language == "python":
+            lexer = PythonLexer()
+        elif language == "cpp":
+            lexer = CppLexer()
+        elif language == "c":
+            lexer = CLexer()
+        elif language == "javascript":
+            lexer = JavascriptLexer()
+        elif language == "csharp":
+            lexer = CSharpLexer()
         else:
-            a = s.splitlines()
-            for i in a:
-                if i != '' and not i.isspace():
-                    tokenList.append(i)
+            print("Please modify this file. Reference: https://pygments.org/docs/lexers/")
+
+        x = highlight(string, lexer, RawTokenFormatter())
+        x = str(x, encoding='utf-8')
+        
+        for y in x.splitlines():
+            ys = y.split('\t')
+            # print(ys)
+            s = eval(ys[1])
+            if s == '\n':
                 tokenList.append('<nl>')
-            tokenList.pop()
+            elif s == 'NewBlock':
+                tokenList.append('<nb>')
+            elif s.isspace():
+                lines = s.count('\n')
+                for _ in range(lines):
+                    tokenList.append('<nl>')
+            elif "Token.Literal.Number.Float" == ys[0]:
+                if s not in otherDict:
+                    sT = 'FLOAT{}'.format(floatNum)
+                    otherDict[s] = sT
+                    floatNum += 1
+                tokenList.append(otherDict[s])
+            elif ys[0].startswith('Token.Literal.Number'):
+                if s not in otherDict:
+                    sT = 'NUMBER{}'.format(numberNum)
+                    otherDict[s] = sT
+                    numberNum += 1
+                tokenList.append(otherDict[s])
+            elif ys[0].startswith('Token.Literal.String'):
+                if s not in otherDict:
+                    sT = 'STRING{}'.format(strNum)
+                    otherDict[s] = sT
+                    strNum += 1
+                tokenList.append(otherDict[s])
+            elif "Token.Name.Namespace" == ys[0]:
+                tokenList.append('NAMESPACE')
+            elif "Token.Comment.Single" == ys[0]:
+                tokenList.append('SINGLE')
+            elif "Token.Comment.Multiline" == ys[0]:
+                lines = s.count('\n')
+                for _ in range(lines):
+                    tokenList.append('COMMENT')
+                    tokenList.append('<nl>')
+                tokenList.append('COMMENT')
+            elif 'Token.Name.Decorator' == ys[0]:
+                tokenList.append('@')
+                tokenList.append(s[1:].lower())
+            elif 'Token.Name' == ys[0]:
+                if s not in variableDict:
+                    sT = 'n{}'.format(nameNum)
+                    variableDict[s] = sT
+                    nameNum += 1
+                tokenList.append(s)
+            elif 'Token.Name.Attribute' == ys[0]:
+                if s not in variableDict:
+                    sT = 'a{}'.format(attNum)
+                    variableDict[s] = sT
+                    attNum += 1
+                tokenList.append(s)
+            elif 'Token.Name.Class' == ys[0]:
+                if s not in variableDict:
+                    sT = 'c{}'.format(clsNum)
+                    variableDict[s] = sT
+                    clsNum += 1
+                tokenList.append(s)
+            elif 'Token.Name.Function' == ys[0]:
+                if s not in variableDict:
+                    sT = 'f{}'.format(fucNum)
+                    variableDict[s] = sT
+                    fucNum += 1
+                tokenList.append(s)
+            else:
+                a = s.splitlines()
+                for i in a:
+                    if i != '' and not i.isspace():
+                        tokenList.append(i)
+                    tokenList.append('<nl>')
+                tokenList.pop()
     return tokenList, variableDict
 
 def split_variable(var):
@@ -241,7 +244,7 @@ class Data4CopynetV3:
                 if x > 1000000000:  # x for debug, set value of x to a small num
                     break
                 diff = i['diff']
-                lang = i['lang']
+                lang = i['lang'].split()
                 if diff == None or i['msg'] == None or i['lang'] == None:
                     count_none+=1
                     pbar.update(1)
@@ -251,37 +254,51 @@ class Data4CopynetV3:
                     pbar.update(1)
                     continue
                 diff = diff.replace("<nl> ", "\n")
-                diff = diff.replace("ppp", "+++")
-                diff = diff.replace("mmm", "---")
+                # diff = diff.replace("ppp", "+++")
+                # diff = diff.replace("mmm", "---")
                 # files = diff.count('+++ ')
                                 
                 # language_file = {"java":" . java ", "python":" . py ", "cpp":" . cpp ", "javascript":" . js ", "csharp":" . cs "}
             
                 
                 ls = diff.splitlines()
-                single_lines = list()
                 diff_marks = list()
                 # other_file = False
+                nxt_file = False
+                cur_lang = -1
+                single_lines_ls = list()
+                single_lines = list()
                 for line in ls:
                     if len(line) < 1: # blank line
                         continue
-                    if line.startswith('+++') or line.startswith('---'):
+                    if line.startswith('ppp ') or line.startswith('mmm '):
                         # if not line.endswith(language_file[lan]):
                         #     other_file = True
                         #     break
-                        continue
-                    st = line[0]
-                    if st != '+' and st != '-': # the code not changed 
-                        single_lines.append(line_filter_cmt(line, lang))
-                        diff_marks.append(2)
-                    elif st == '-': # the code deleted
-                        line = line[1:].strip()
-                        single_lines.append(line_filter_cmt(line, lang))
-                        diff_marks.append(1)
-                    elif st == '+': # the code added
-                        line = line[1:].strip()
-                        single_lines.append(line_filter_cmt(line, lang))
-                        diff_marks.append(3)
+                        nxt_file = True
+                    else:
+                        st = line[0]
+                        if nxt_file:
+                            if len(single_lines) > 0:
+                                single_lines_ls.append(single_lines)
+                            cur_lang += 1
+                            nxt_file = False
+                        if st != '+' and st != '-': # the code not changed 
+                            try:
+                                single_lines.append(line_filter_cmt(line, lang[cur_lang]))
+                            except:
+                                print(diff)
+                                print(lang)
+                                print(cur_lang)
+                            diff_marks.append(2)
+                        elif st == '-': # the code deleted
+                            line = line[1:].strip()
+                            single_lines.append(line_filter_cmt(line, lang[cur_lang]))
+                            diff_marks.append(1)
+                        elif st == '+': # the code added
+                            line = line[1:].strip()
+                            single_lines.append(line_filter_cmt(line, lang[cur_lang]))
+                            diff_marks.append(3)
                     # if len(single_language_lines) > 0:
                     #     ttt = len(single_language_lines)
                     #     logger.info(single_language_lines[ttt-1])
@@ -291,14 +308,20 @@ class Data4CopynetV3:
                 # logger.info("single_language_lines:", single_language_lines)
                 
 
-                try:
-                    tokenList, varDict = pygment_mul_line(single_lines, lang)
-                except:
-                    print(single_lines)
-                    cnt = cnt+1
-                    continue
+                # try:
+                    
+                # except:
+                #     # print(single_lines)
+                #     cnt = cnt+1
+                #     continue
+                if len(single_lines) > 0:
+                    single_lines_ls.append(single_lines)
+                tokenList, varDict = pygment_mul_line(single_lines_ls, lang)
+
                 msg = pattern.findall(i['msg'])
                 msg = [i for i in msg if i != '' and not i.isspace()]
+
+                # print("OK")
 
                 self.msgtext.append(i['msg'])
                 self.msg.append(msg)
@@ -374,8 +397,8 @@ class Data4CopynetV3:
         na, nb, nc, nd, ne, nf, ng, ni = [], [], [], [], [], [], [], []
         # delte `, self.diffatt`
         for i, j, k, l, m, n, id in zip(self.difftoken, self.diffmark, self.msg, self.variable, self.difftext, self.msgtext, self.id):
-        # for i, j, k, l, m, n, o in zip(self.difftoken, self.diffmark, self.msg, self.variable, self.difftext,
-        #                                        self.msgtext, self.diffatt):
+        # for i, j, k, l, m, n, o, id in zip(self.difftoken, self.diffmark, self.msg, self.variable, self.difftext,
+        #                                        self.msgtext, self.diffatt, self.id):
             diff = []
             for idx, d in enumerate(i):
                 if (d == '<nb>' or d == '<nl>') and idx + 1 < len(j) and j[idx + 1] != 2:
@@ -395,7 +418,7 @@ class Data4CopynetV3:
                         save = False
                         break
                 if save:
-                    na.append(i), nb.append(j), nc.append(k), nd.append(l), ne.append(m), nf.append(n), ni.append(id)# , ng.append(o)
+                    na.append(i), nb.append(j), nc.append(k), nd.append(l), ne.append(m), nf.append(n), ni.append(id) #, ng.append(o)
             # else:
             #     logger.info(len(diff),diff)
         self.difftoken, self.diffmark, self.msg, self.variable, self.difftext = na, nb, nc, nd, ne
