@@ -1,3 +1,5 @@
 __pycache__/
 data4CopynetV3/
 main.ipynb
+CMG-data/
+data_preprocess/preprocessed_data
