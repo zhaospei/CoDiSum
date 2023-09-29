@@ -1027,8 +1027,8 @@ if __name__ == '__main__':
     dataset.build(repo_full_name, path = args.output_folder, need_time = args.need_time)
     logger.debug("build {}".format(len(dataset.msgtext)))
 
-    dataset.filter(args.min_diff, args.max_diff, args.min_msg, args.max_diff) # [to-do]
-    logger.debug("filter {}".format(len(dataset.msgtext)))
+    # dataset.filter(args.min_diff, args.max_diff, args.min_msg, args.max_diff) # [to-do]
+    # logger.debug("filter {}".format(len(dataset.msgtext)))
 
     # if args.sort == "random":
     #     logger.debug("shuffle {}".format(len(dataset.msgtext)))

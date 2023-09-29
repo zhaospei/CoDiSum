@@ -341,6 +341,8 @@ class Data4CopynetV3:
         mg = np.zeros([length, msg_len + 1])
         for i, (j, k, l, m, n) in enumerate(zip(diff, diff_m, msg, va, diff_a)):
             for idx, (dt, dm, da) in enumerate(zip(j, k, n)):
+                if idx > 199:
+                    continue
                 d_mark[i, idx] = dm
                 dt = m[dt] if dt in m else dt
                 dn = self.word2index[dt] if dt in self.word2index else self.word2index['<unkd>']
